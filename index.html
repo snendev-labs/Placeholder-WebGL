@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Placeholder: The Game</title>
+  <style>
+    body {
+      margin: 0;
+    }
+    #window{
+      width:100vw;
+      height:50vw;
+    }
+    .game {
+      width:45%;
+      height:90%;
+      float:left;
+      border:1px solid black;
+      overflow:hidden;
+    }
+    canvas {
+      width:100%;
+      height:100%;
+    }
+  </style>
+  <script type="text/javascript" src="./jquery.min.js"></script>
+</head>
+<body>
+  <script id="vert" type="notjs">
+    //in
+    attribute vec2 pos;
+    attribute vec2 uvcoord;
+    uniform vec2 ures;
+    //out
+    varying vec2 uv;
+    void main() {
+      vec2 clip = pos/ures*2.0 - 1.0;
+      gl_Position = vec4(clip,0,1);
+      uv = uvcoord;
+    }
+  </script>
+  <script id="frag" type="notjs">
+    precision mediump float;
+    uniform vec3 col;
+    varying vec2 uv;
+    uniform sampler2D _tex;
+    void main() {
+      gl_FragColor = vec4(col, 1)*texture2D(_tex, uv);
+    }
+  </script>
+  <script id="snakevert" type="notjs">
+    //in
+    attribute vec2 pos;
+    uniform vec2 ures;
+    void main() {
+      vec2 clip = pos/ures*2.0 - 1.0;
+      gl_Position = vec4(clip,0,1);
+    }
+  </script>
+  <script id="snakefrag" type="notjs">
+    precision mediump float;
+    uniform vec3 col;
+    void main() {
+      gl_FragColor = vec4(col, 1);
+    }
+  </script>
+  <div id="window">
+    <div class="game">
+      <canvas id="canv"></canvas>
+    </div>
+    <div class="game">
+      <canvas id="snake"></canvas>
+    </div>
+  </div>
+  <script src="placeholder.js" id="game"></script>
+</body>
+</html>
