@@ -54,53 +54,77 @@ function makeTexture(gl){
   return texture;
 }
 
-function renderGame(){
-  //initialize
-  var canvas = document.getElementById("canv");
+function initGL(canvas){
   var gl = canvas.getContext("webgl");
   if(!gl) {
     return;
   }
-  var program = makeShaderProgram(gl, "vert", "frag");
-
-  //render
   gl.viewport(0,0,gl.canvas.width,gl.canvas.height);
   gl.clearColor(0,0,0,1);
   gl.clear(gl.COLOR_BUFFER_BIT);
-  gl.useProgram(program);
+  return gl;
+}
 
-  //shader inputs
-  var posAttrLoc = gl.getAttribLocation(program, "pos");
-  var uvAttrLoc = gl.getAttribLocation(program, "uvcoord");
-  var resUnifLoc = gl.getUniformLocation(program, "ures");
-  var colUnifLoc = gl.getUniformLocation(program, "col");
-  var texUnifLoc = gl.getUniformLocation(program, "_tex");
-  var posBuf = gl.createBuffer();
-  var uvBuf = gl.createBuffer();
+function setShaderAttribute(gl, program, shadervar){
+  var loc = gl.getAttribLocation(program, shadervar);
+  var buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  return buf;
+}
 
-  //bind resolution uniform
-  gl.uniform2f(resUnifLoc, gl.canvas.width, gl.canvas.height);
+function setResolutionUniform(gl, program){
+  var loc = gl.getUniformLocation(program, "ures");
+  gl.uniform2f(loc, gl.canvas.width, gl.canvas.height);
+}
+
+function render(){
+  //initialize
+  var boardcanv = document.getElementById("canv");
+  var snakecanv = document.getElementById("snake");
+  var boardgl = initGL(boardcanv);
+  var snakegl = initGL(snakecanv);
+  var boardprog = makeShaderProgram(boardgl, "vert", "frag");
+  var snakeprog = makeShaderProgram(snakegl, "snakevert", "snakefrag");
+
+  //begin render program
+  boardgl.useProgram(boardprog);
+  snakegl.useProgram(snakeprog);
+
+  //shader attributes
+  var uvBoardBuf = setShaderAttribute(boardgl, boardprog, "uvcoord");
+  boardgl.bufferData(boardgl.ARRAY_BUFFER,
+    new Float32Array([0,1, 1,1, 0,0,0,0, 1,1, 1,0]),
+    boardgl.STATIC_DRAW
+  );
+  var posBoardBuf = setShaderAttribute(boardgl, boardprog, "pos");
+  var posSnakeBuf = setShaderAttribute(snakegl, snakeprog, "pos");
+
+  //shader uniforms
+  setResolutionUniform(boardgl, boardprog);
+  setResolutionUniform(snakegl, snakeprog);
+  var boardColLoc = boardgl.getUniformLocation(boardprog, "col");
+  var snakeColLoc = snakegl.getUniformLocation(snakeprog, "col");
 
   //create / bind texture
-  makeTexture(gl);
-  //set up texcoords
-  gl.bindBuffer(gl.ARRAY_BUFFER, uvBuf);
-  gl.enableVertexAttribArray(uvAttrLoc);
-  gl.vertexAttribPointer(uvAttrLoc, 2, gl.FLOAT, false, 0, 0);
-  gl.bufferData(gl.ARRAY_BUFFER,
-    new Float32Array([
-      //one quad, just like they were drawn
-      0,1, 1,1, 0,0,
-      0,0, 1,1, 1,0,
-    ]),
-    gl.STATIC_DRAW
-  );
+  makeTexture(boardgl);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
-  gl.enableVertexAttribArray(posAttrLoc);
-  gl.vertexAttribPointer(posAttrLoc, 2, gl.FLOAT, false, 0, 0);
+  //begin loop
+  var snakeCoordsX = [25,26,27,28,29];
+  var snakeCoordsY = [15,15,15,15,15];
+  var snakeCoords = [];
+  var xRand = Math.floor(Math.random()*wBoard);
+  var yRand = Math.floor(Math.random()*hBoard);
+  var startDir = Math.floor(Math.random()*4);
 
+  snakegl.uniform3f(snakeColLoc, .8, .8, .8);
   //draw
+  drawBoard(boardgl, boardcanv, boardColLoc);
+  snakeLoop(snakegl, snakecanv, snakeColLoc, snakeCoordsX, snakeCoordsY);
+}
+
+function drawBoard(gl, canvas, colUnifLoc){
   var count = 6;
   var wTile = canvas.width/wBoard;
   var hTile = canvas.height/hBoard;
@@ -125,39 +149,6 @@ function renderGame(){
   }
 }
 
-function renderSnake(){
-  var canvas = document.getElementById("snake");
-  var gl = canvas.getContext("webgl");
-  if(!gl) {
-    return;
-  }
-  var program = makeShaderProgram(gl, "snakevert", "snakefrag");
-
-  //render
-  gl.viewport(0,0,gl.canvas.width,gl.canvas.height);
-  gl.clearColor(0,0,0,1);
-  gl.clear(gl.COLOR_BUFFER_BIT);
-  gl.useProgram(program);
-
-  //shader inputs
-  var posAttrLoc = gl.getAttribLocation(program, "pos");
-  var resUnifLoc = gl.getUniformLocation(program, "ures");
-  var colUnifLoc = gl.getUniformLocation(program, "col");
-  var posBuf = gl.createBuffer();
-
-  //bind resolution uniform
-  gl.uniform2f(resUnifLoc, gl.canvas.width, gl.canvas.height);
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, posBuf);
-  gl.enableVertexAttribArray(posAttrLoc);
-  gl.vertexAttribPointer(posAttrLoc, 2, gl.FLOAT, false, 0, 0);
-  //begin loop
-  var snakeCoordsX = [25,26,27,28,29];
-  var snakeCoordsY = [15,15,15,15,15];
-
-  snakeLoop(gl, canvas, colUnifLoc, snakeCoordsX, snakeCoordsY);
-}
-
 function snakeLoop(gl, canvas, colUnifLoc, x, y){
   if(dirQue.length > 0 && (dir+2)%4 != dirQue[0]){
     dir = dirQue.shift();
@@ -172,10 +163,11 @@ function snakeLoop(gl, canvas, colUnifLoc, x, y){
   var hTile = canvas.height/hSnake;
   for(var i=0; i<x.length; i++){
     drawUnitTile(gl, x[i]*wTile, y[i]*hTile, wTile, hTile);
-    gl.uniform3f(colUnifLoc, .8, .8, .8);
     gl.drawArrays(gl.TRIANGLES,0,count);
   }
-  window.setTimeout(snakeLoop, 120, gl, canvas, colUnifLoc, x, y);
+  if(!snakeover){
+    window.setTimeout(snakeLoop, 120, gl, canvas, colUnifLoc, x, y);
+  }
 }
 
 function moveSnake(x,y){
@@ -196,8 +188,25 @@ function moveSnake(x,y){
     newX = (x[0]-1 > -1) ? x[0]-1 : wSnake-1;
     newY = y[0];
   }
+  if(pointInSnake(newX, newY, x, y)){
+    snakeover = 1;
+  }
   x.unshift(newX);
   y.unshift(newY);
+}
+
+function pointInSnake(nx, ny, xarr, yarr){
+  for(var i=0; i<xarr.length; i++){
+    if(xarr[i]==nx && yarr[i]==ny){
+      return 1;
+    }
+  }
+  return 0;
+}
+
+function createMap(){
+  var m = [];
+  return m;
 }
 
 $(document).keydown(function(event) {
@@ -227,12 +236,26 @@ const wBoard = 10;
 const hBoard = 10;
 const wSnake = 30;
 const hSnake = 30;
+const diffMin = 30;
+const diffScaling = 10;
+
+//tile colors
+const normalColor = [.7,.7,.7];
+const grassColor = [.13,.54,.13];
+const mtnColor = [.54,.27,.07];
+
 var dir = LEFT;
 var dirQue = [];
 var snakeover = 0;
-//var normalColor;
-//var grassColor;
-//var mtnColor;
+
+var hp = 5;
+var banks = 0;
+var numBossBeaten = 0;
+var difficulty = Math.floor(diffScaling*diffMin/(diffScaling+numBossBeaten));
+
+var map = createMap();
+
+//assets
 var texBasic = new Image();
 texBasic.src = "assets/blank_tex.png";
 var texLand = new Image();
@@ -241,7 +264,4 @@ var texBase = new Image();
 texBase.src = "assets/home_tex.png";
 var texBank = new Image();
 texBank.src = "assets/bank_tex.png";
-texBasic.onload = function(){
-  renderGame();
-  renderSnake();
-};
+texBasic.onload = function(){render();};
