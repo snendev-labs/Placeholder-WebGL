@@ -203,12 +203,34 @@ function pointInSnake(nx, ny, xarr, yarr){
 
 function createMap(){
   var m = [];
+  var c;
   for(var j=0; j<hBoard; j++){
     var row = [];
+    var a;
     for(var i=0; i<wBoard; i++){
+      var k = i+j;
+      if(playerLocation[0] == i && playerLocation[1] == j){
+        c = highlightColor;
+      } else if(k%3 == 0){
+        c = normalColor;
+      } else if(k%3 == 1){
+        c = grassColor;
+      } else if(k%3 == 2){
+        c = mtnColor;
+      }
+      k = i+j*wBoard;
+      if(k%23 == 0){
+        a = LAND;
+      } else if(k%23 == 11){
+        a = BANK;
+      } else if(k%23 == 18){
+        a = BASE;
+      } else{
+        a = NOTYPE;
+      }
       row.push({
-        color : normalColor,
-        type : NOTYPE
+        color : c,
+        type : a
       });
     }
     m.push(row);
@@ -250,6 +272,7 @@ const diffScaling = 10;
 const normalColor = [.7,.7,.7];
 const grassColor = [.13,.54,.13];
 const mtnColor = [.54,.27,.07];
+const highlightColor = [.85,.64,.13]
 
 //building types
 const NOTYPE=0;
@@ -269,6 +292,7 @@ var banks = 0;
 var numBits = 1;
 var numBossBeaten = 0;
 var difficulty = Math.floor(diffScaling*diffMin/(diffScaling+numBossBeaten));
+var playerLocation = [4,4];
 
 var map = createMap();
 

@@ -8,14 +8,25 @@
     }
     #window{
       width:100vw;
-      height:50vw;
+      height:100vh;
+      background-color:#708090;
+    }
+    #text{
+      width:90%;
+      height:30%;
+      float:left;
+      overflow:hidden;
+      border: 3px solid #696969;
+      margin: 0.5em;
+      text-align: center;
     }
     .game {
       width:45%;
-      height:90%;
+      height:45%;
       float:left;
-      border:1px solid black;
       overflow:hidden;
+      border: 3px solid #696969;
+      margin: 0.5em;
     }
     canvas {
       width:100%;
@@ -69,6 +80,9 @@
     </div>
     <div class="game">
       <canvas id="snake"></canvas>
+    </div>
+    <div id="text">
+      <p></p>
     </div>
   </div>
   <script src="placeholder.js" id="game"></script>
