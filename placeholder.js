@@ -130,14 +130,21 @@ function drawBoard(gl, canvas, colUnifLoc){
   var hTile = canvas.height/hBoard;
   for(var j=0; j<hBoard; j++){
     for(var i=0; i<wBoard; i++){
-      if(map[j][i].type == NOTYPE){
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texBasic);
-      } else if(map[j][i].type == LAND){
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texLand);
-      } else if(map[j][i].type == BANK){
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texBank);
-      } else if(map[j][i].type == BASE){
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texBase);
+      switch(map[j][i].type){
+        case NOTYPE:
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texBasic);
+          break;
+        case LAND:
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texLand);
+          break;
+        case BANK:
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texBank);
+          break;
+        case BASE:
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texBase);
+          break;
+        default:
+          console.log("no tile type i="+toString(i)+" j="+toString(j));
       }
       drawUnitTile(gl, i*wTile, j*hTile, wTile, hTile);
       gl.uniform3f(colUnifLoc, map[j][i].color[0], map[j][i].color[1], map[j][i].color[2]);
@@ -172,18 +179,23 @@ function moveSnake(x,y){
   y.pop();
   var newX;
   var newY;
-  if(dir == UP){
-    newX = x[0];
-    newY = (y[0]+1)%hSnake;
-  } else if(dir == RIGHT){
-    newX = (x[0]+1)%wSnake;
-    newY = y[0];
-  } else if(dir == DOWN){
-    newX = x[0];
-    newY = (y[0]-1 > -1) ? y[0]-1 : hSnake-1;
-  } else if(dir == LEFT){
-    newX = (x[0]-1 > -1) ? x[0]-1 : wSnake-1;
-    newY = y[0];
+  switch(dir){
+    case UP:
+      newX = x[0];
+      newY = (y[0]+1)%hSnake;
+      break;
+    case RIGHT:
+      newX = (x[0]+1)%wSnake;
+      newY = y[0];
+      break;
+    case DOWN:
+      newX = x[0];
+      newY = (y[0]-1 > -1) ? y[0]-1 : hSnake-1;
+      break;
+    case LEFT:
+      newX = (x[0]-1 > -1) ? x[0]-1 : wSnake-1;
+      newY = y[0];
+      break;
   }
   if(pointInSnake(newX, newY, x, y)){
     snakeover = 1;
@@ -208,15 +220,17 @@ function createMap(){
     var row = [];
     var a;
     for(var i=0; i<wBoard; i++){
-      var k = i+j;
       if(playerLocation[0] == i && playerLocation[1] == j){
-        c = highlightColor;
-      } else if(k%3 == 0){
-        c = normalColor;
-      } else if(k%3 == 1){
-        c = grassColor;
-      } else if(k%3 == 2){
-        c = mtnColor;
+        c = highlightColor; //change to outline in second pass
+      } else{
+        var k = Math.random()*100;
+        if(k<60){
+          c = normalColor;
+        } else if(k<85){
+          c = grassColor;
+        } else{
+          c = mtnColor;
+        }
       }
       k = i+j*wBoard;
       if(k%23 == 0){
@@ -240,19 +254,15 @@ function createMap(){
 
 $(document).keydown(function(event) {
   if(event.which==87 || event.which==38) {
-    console.log("up");
     dirQue.push(UP);
   }
   if(event.which==68 || event.which==39) {
-    console.log("right");
     dirQue.push(RIGHT);
   }
   if(event.which==83 || event.which==40) {
-    console.log("down");
     dirQue.push(DOWN);
   }
   if(event.which==65 || event.which==37) {
-    console.log("left");
     dirQue.push(LEFT);
   }
 });
@@ -295,6 +305,16 @@ var difficulty = Math.floor(diffScaling*diffMin/(diffScaling+numBossBeaten));
 var playerLocation = [4,4];
 
 var map = createMap();
+
+/*function TextDisplay($scope){
+  var dispHP;
+  var dispLoc;
+  $scope.StartGame = function StartGame(){
+    dispHp = "HP: " + toString(hp);
+    dispLoc = "Location: "+toString(playerLocation[0])+","+toString(playerLocation[1]);
+    $scope.$apply();
+  }
+}*/
 
 //assets
 var texBasic = new Image();
