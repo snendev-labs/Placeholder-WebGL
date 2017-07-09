@@ -129,21 +129,18 @@ function drawBoard(gl, canvas, colUnifLoc){
   var wTile = canvas.width/wBoard;
   var hTile = canvas.height/hBoard;
   for(var j=0; j<hBoard; j++){
-    if(j%4 == 0){
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texBasic);
-    } else if(j%4 == 1){
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texLand);
-    } else if(j%4 == 2){
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texBank);
-    } else{
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texBase);
-    }
     for(var i=0; i<wBoard; i++){
+      if(map[j][i].type == NOTYPE){
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texBasic);
+      } else if(map[j][i].type == LAND){
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texLand);
+      } else if(map[j][i].type == BANK){
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texBank);
+      } else if(map[j][i].type == BASE){
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texBase);
+      }
       drawUnitTile(gl, i*wTile, j*hTile, wTile, hTile);
-      var r = parseFloat((i*wTile/canvas.width).toFixed(4));
-      var g = parseFloat(((i*wTile+j*hTile)/(canvas.width+canvas.height)).toFixed(4));
-      var b = parseFloat((j*hTile/canvas.height).toFixed(4));
-      gl.uniform3f(colUnifLoc, r, g, b);
+      gl.uniform3f(colUnifLoc, map[j][i].color[0], map[j][i].color[1], map[j][i].color[2]);
       gl.drawArrays(gl.TRIANGLES,0,count);
     }
   }
@@ -206,6 +203,16 @@ function pointInSnake(nx, ny, xarr, yarr){
 
 function createMap(){
   var m = [];
+  for(var j=0; j<hBoard; j++){
+    var row = [];
+    for(var i=0; i<wBoard; i++){
+      row.push({
+        color : normalColor,
+        type : NOTYPE
+      });
+    }
+    m.push(row);
+  }
   return m;
 }
 
@@ -244,12 +251,22 @@ const normalColor = [.7,.7,.7];
 const grassColor = [.13,.54,.13];
 const mtnColor = [.54,.27,.07];
 
+//building types
+const NOTYPE=0;
+const LAND=1;
+const BANK=2;
+const BASE=3;
+//fourth object adds extra points to grab to game
+
+//control variables
 var dir = LEFT;
 var dirQue = [];
 var snakeover = 0;
 
+//game variables
 var hp = 5;
 var banks = 0;
+var numBits = 1;
 var numBossBeaten = 0;
 var difficulty = Math.floor(diffScaling*diffMin/(diffScaling+numBossBeaten));
 
