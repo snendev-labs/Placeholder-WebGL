@@ -1,3 +1,14 @@
+function initGL(canvas){
+  var gl = canvas.getContext("webgl");
+  if(!gl) {
+    return;
+  }
+  gl.viewport(0,0,gl.canvas.width,gl.canvas.height);
+  gl.clearColor(0,0,0,1);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  return gl;
+}
+
 function createShader(gl, type, source){
   var shader = gl.createShader(type);
   gl.shaderSource(shader,source);
@@ -23,46 +34,12 @@ function createProgram(gl, vert, frag){
   gl.deleteProgram(program);
 }
 
-function drawUnitTile(gl,x,y,w,h){
-  var x2 = x+w;
-  var y2 = y+h;
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-    x , y ,
-    x2, y ,
-    x , y2,
-    x , y2,
-    x2, y ,
-    x2, y2]), gl.STATIC_DRAW);
-}
-
 function makeShaderProgram(gl, vert_id, frag_id){
   var vsrc = document.getElementById(vert_id).text;
   var fsrc = document.getElementById(frag_id).text;
   var vert = createShader(gl, gl.VERTEX_SHADER, vsrc);
   var frag = createShader(gl, gl.FRAGMENT_SHADER, fsrc);
   return createProgram(gl, vert, frag);
-}
-
-function makeTexture(gl){
-  var texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-  return texture;
-}
-
-function initGL(canvas){
-  var gl = canvas.getContext("webgl");
-  if(!gl) {
-    return;
-  }
-  gl.viewport(0,0,gl.canvas.width,gl.canvas.height);
-  gl.clearColor(0,0,0,1);
-  gl.clear(gl.COLOR_BUFFER_BIT);
-  return gl;
 }
 
 function setShaderAttribute(gl, program, shadervar){
@@ -77,6 +54,29 @@ function setShaderAttribute(gl, program, shadervar){
 function setResolutionUniform(gl, program){
   var loc = gl.getUniformLocation(program, "ures");
   gl.uniform2f(loc, gl.canvas.width, gl.canvas.height);
+}
+
+function makeTexture(gl){
+  var texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  return texture;
+}
+
+function drawUnitTile(gl,x,y,w,h){
+  var x2 = x+w;
+  var y2 = y+h;
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+    x , y ,
+    x2, y ,
+    x , y2,
+    x , y2,
+    x2, y ,
+    x2, y2]), gl.STATIC_DRAW);
 }
 
 function render(){
@@ -291,6 +291,11 @@ const BANK=2;
 const BASE=3;
 //fourth object adds extra points to grab to game
 
+//context types
+const PAUSE=0;
+const BOARD=1;
+const SNAKE=2;
+
 //control variables
 var dir = LEFT;
 var dirQue = [];
@@ -303,6 +308,8 @@ var numBits = 1;
 var numBossBeaten = 0;
 var difficulty = Math.floor(diffScaling*diffMin/(diffScaling+numBossBeaten));
 var playerLocation = [4,4];
+var playerContext = BOARD;
+
 
 var map = createMap();
 
