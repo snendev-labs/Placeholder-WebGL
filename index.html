@@ -11,14 +11,20 @@
       height:90vw;
       background-color:#708090;
     }
-    #text{
-      width:92%;
-      height:30%;
+    #stats{
+      width:82.5%;
+      height:20%;
+      padding:5%;
       float:left;
       overflow:hidden;
       border: 3px solid #696969;
       margin: 0.5em;
       text-align: center;
+    }
+    .text{
+      width:50%;
+      margin:0;
+      float:left;
     }
     .btn{
       background-color: #003f56;
@@ -87,10 +93,21 @@
     <div class="game">
       <canvas id="snake"></canvas>
     </div>
-    <div id="text" ng-controller="TextDisplay">
-      <br>
-      <br>
-      <button type='button' class='btn'>Start Game</button>
+    <div id="stats">
+      <div class="text">
+        <span id="hpStat">HP: </span>
+        <br/> <br/>
+        <span id="locStat">Location: </span>
+      </div>
+      <div class="text">
+        <span id="scoreStat">Score: </span>
+        <br/> <br/>
+        <div id="Store">
+        </div>
+      </div>
+      <div>
+        <button type='button' class='btn' id='startGame'>Start Game</button>
+      </div>
     </div>
   </div>
   <script src="jquery.min.js"></script>
