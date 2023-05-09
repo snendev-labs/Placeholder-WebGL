@@ -200,24 +200,27 @@ function moveSnake(x,y){
   y.unshift(newY);
 }
 
-$(document).keydown(function(event) {
-  if(event.which==87 || event.which==38) {
-    console.log("up");
-    dirQue.push(UP);
-  }
-  if(event.which==68 || event.which==39) {
-    console.log("right");
-    dirQue.push(RIGHT);
-  }
-  if(event.which==83 || event.which==40) {
-    console.log("down");
-    dirQue.push(DOWN);
-  }
-  if(event.which==65 || event.which==37) {
-    console.log("left");
-    dirQue.push(LEFT);
-  }
-});
+function addKeyDownHandler() {
+  document.addEventListener("keydown", function(event) {
+    if(event.key.toLowerCase()=="w") {
+      console.log("up");
+      dirQue.push(UP);
+    }
+    if(event.key.toLowerCase()=="d") {
+      console.log("right");
+      dirQue.push(RIGHT);
+    }
+    if(event.key.toLowerCase()=="s") {
+      console.log("down");
+      dirQue.push(DOWN);
+    }
+    if(event.key.toLowerCase()=="a") {
+      console.log("left");
+      dirQue.push(LEFT);
+    }
+  });
+}
+document.addEventListener('DOMContentLoaded', addKeyDownHandler, false);
 
 const UP=0;
 const RIGHT=1;
